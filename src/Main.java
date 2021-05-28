@@ -32,6 +32,7 @@ import javax.swing.table.DefaultTableModel;
 public class Main extends JFrame  {
     private JTextField Searchtextfield;
     private JTable table;
+    private DefaultTableModel dtm;
     /**
      * Instantiates a new main.
      * 
@@ -74,7 +75,7 @@ public class Main extends JFrame  {
 
         // create table Model
         
-        DefaultTableModel dtm =new DefaultTableModel(
+        dtm =new DefaultTableModel(
 
                 new Object[][] {
             },
@@ -84,26 +85,6 @@ public class Main extends JFrame  {
         );
         // associate model to table
         table.setModel(dtm);
-
-
-        // a panel that hold the first name, last name, code, address and Day of Birth text field for entering 
-        // information into the table on the main panel 
-        JPanel AddentryPanel = new JPanel();
-        AddentryPanel.setBackground(Color.LIGHT_GRAY);
-        // adding Entry using AddEntry Class
-        
-        new AddEntry(AddentryPanel, tabbedPane,table,dtm);
-
-        // add action to the Search Button
-        
-        SearchButton.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-				new Search(dtm, Searchtextfield);
-			}
-		});
         
         // a menu bar for displaying the option to load contact, save contact, 
         // export contact as excel file and be able to close option
@@ -123,18 +104,17 @@ public class Main extends JFrame  {
         fileoption.add(load);
 
         load.addActionListener(new ActionListener() {
-        	DefaultTableModel loaded;
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
-				 FileFilter filter = new FileNameExtensionFilter("Txt files", "txt");
+				FileFilter filter = new FileNameExtensionFilter("Txt files", "txt");
 				JFileChooser location = new JFileChooser("Choose A location to load from it");
 				location.setFileSelectionMode(JFileChooser.FILES_ONLY);
 				location.addChoosableFileFilter(filter);
 				int ret = location.showOpenDialog(null);
 				if(ret == JFileChooser.APPROVE_OPTION) {
-					loaded = createModel(location.getSelectedFile().getAbsoluteFile());
-					table.setModel(loaded);
+					dtm = createModel(location.getSelectedFile().getAbsoluteFile());
+					table.setModel(dtm);
 					JOptionPane.showMessageDialog(null, "Loaded with success", "Done", JOptionPane.INFORMATION_MESSAGE);
 				}else{
 					JOptionPane.showMessageDialog(null, "Failed to load", "Failure", JOptionPane.ERROR_MESSAGE);
@@ -171,7 +151,12 @@ public class Main extends JFrame  {
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
 				
-				JOptionPane.showMessageDialog(null, "Not Finished yet", "Sorry", JOptionPane.INFORMATION_MESSAGE);
+				if(JOptionPane.showConfirmDialog(null, "Would you like to delete all selected rows?\n by approving you can't recover your data so make sure that you have saved them", "Delete", 
+                        JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)
+                        == JOptionPane.YES_OPTION) {
+					deleteRows(table);
+					JOptionPane.showMessageDialog(null, "Deleted with success", "Done", JOptionPane.INFORMATION_MESSAGE);
+				}
 				
 			}
 		});
@@ -195,13 +180,32 @@ public class Main extends JFrame  {
         
         table.getColumnModel().getColumn(2).setPreferredWidth(124);
 
+        // a panel that hold the first name, last name, code, address and Day of Birth text field for entering 
+        // information into the table on the main panel 
+        // add action to the Search Button
+        SearchButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				new Search(dtm, Searchtextfield);
+			}
+		});
+        
+        
+        JPanel AddentryPanel = new JPanel();
+        AddentryPanel.setBackground(Color.LIGHT_GRAY);
+        // adding Entry using AddEntry Class
+        
+        new AddEntry(AddentryPanel, tabbedPane,table);
+
     }
 
 
     public void save(JTable table,String filepath) {
     	//read(table);
     	try (BufferedWriter bw = new BufferedWriter(new FileWriter(new File(filepath+"\\Etudiant.txt")))) {
-    	    StringJoiner joiner = new StringJoiner(",");
+    	    StringJoiner joiner = new StringJoiner("\t,");
     	    for (int col = 0; col < table.getColumnCount(); col++) {
     	        joiner.add(table.getColumnName(col));
     	    }
@@ -232,12 +236,7 @@ public class Main extends JFrame  {
 	           String header = txtReader.readLine();
 	           String line;
 	           
-     	   model = new DefaultTableModel(header.split(","), 0){
-            	@Override
-         	public boolean isCellEditable(int row, int col) {
-             	return (col == 1 && ((row == 2 )||(row == 3 )));
-             }
-         };
+     	   model = new DefaultTableModel(header.split(","), 0);
      	   while ((line = txtReader.readLine()) != null) {
 	               model.addRow(line.split("\t,"));
 	           }
@@ -247,6 +246,17 @@ public class Main extends JFrame  {
 	       return model;
 	   }
     
+    private void deleteRows(JTable table) {
+    	
+    	DefaultTableModel model = (DefaultTableModel) this.table.getModel();
+    	
+    	int[] rows = table.getSelectedRows();
+    	
+    	for(int i=0;i<rows.length;i++){
+    	     model.removeRow(rows[i]-i);
+    	}
+    	
+    }
     
     public static void main(String[] args) throws Exception {
         Main frame = new Main();

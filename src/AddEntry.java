@@ -30,8 +30,9 @@ public class AddEntry {
     private JTextField codetext;
     private JTextField addresstext;
     private JTextField dateofbirthtext;
-
-    public AddEntry(JPanel AddentryPanel,JTabbedPane tabbedPane,JTable table,DefaultTableModel dtm) throws Exception {
+    private DefaultTableModel dtm;
+    
+    public AddEntry(JPanel AddentryPanel,JTabbedPane tabbedPane,JTable table) throws Exception {
     	
     	MaskFormatter mf2 = new MaskFormatter("## / ## / ####");
     	tabbedPane.addTab("Add Entry", null, AddentryPanel, null); 
@@ -129,6 +130,7 @@ public class AddEntry {
                     {
 
                 	boolean used = false;
+                	dtm = (DefaultTableModel) table.getModel();
 	                int rows = dtm.getRowCount();
 	                //System.out.println(rows);
 	                for(int i=0 ; i<rows;i++) {
